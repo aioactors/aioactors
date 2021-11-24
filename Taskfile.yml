@@ -1,0 +1,112 @@
+# Docks: https://taskfile.dev
+
+version: "3"
+
+silent: true
+
+vars:
+  FLAKE8_ENABLE: "{{ .FLAKE8_ENABLE | default true }}"
+  MYPY_ENABLE: "{{ .MYPY_ENABLE | default true }}"
+  PYLINT_ENABLE: "{{ .PYLINT_ENABLE | default true }}"
+  VULTURE_ENABLE: "{{ .VULTURE_ENABLE | default true }}"
+
+tasks:
+  default:
+    deps:
+      - info
+
+  info:
+    desc: Prints application info
+    cmds:
+      - echo "---"
+      - poetry version
+      - echo "---"
+
+  lint:
+    desc: Linters for application cleanup
+    cmds:
+      - task: lint-flake8
+        vars:
+          ENABLE: "{{ .FLAKE8_ENABLE }}"
+      - task: lint-mypy
+        vars:
+          ENABLE: "{{ .MYPY_ENABLE }}"
+      - task: lint-pylint
+        vars:
+          ENABLE: "{{ .PYLINT_ENABLE }}"
+      - task: lint-vulture
+        vars:
+          ENABLE: "{{ .VULTURE_ENABLE }}"
+  lint-flake8:
+    desc: Linters for application cleanup
+    cmds:
+      - echo "-- lint-flake8 (enabled={{ .ENABLE }}) --"
+      - '{{ if eq .ENABLE "true" }} pflake8 {{ end }}'
+    vars:
+      ENABLE: "{{ .ENABLE | default true }}"
+  lint-mypy:
+    desc: Linters for application cleanup
+    cmds:
+      - echo "-- lint-mypy (enabled={{ .ENABLE }}) --"
+      - '{{ if eq .ENABLE "true" }} mypy . {{ end }}'
+    vars:
+      ENABLE: "{{ .ENABLE | default true }}"
+  lint-pylint:
+    desc: Linters for application cleanup
+    cmds:
+      - echo "-- lint-pylint (enabled={{ .ENABLE }}) --"
+      - '{{ if eq .ENABLE "true" }} pylint */ {{ end }}'
+    vars:
+      ENABLE: "{{ .ENABLE | default true }}"
+  lint-vulture:
+    desc: Linters for application cleanup
+    cmds:
+      - echo "-- lint-vulture (enabled={{ .ENABLE }}) --"
+      - '{{ if eq .ENABLE "true" }} vulture . .vulture-whitelist.cfg {{ end }}'
+    vars:
+      ENABLE: "{{ .ENABLE | default true }}"
+
+  coverage:
+    desc: Calculate code coverage
+    cmds:
+      - rm -rf htmlcov
+      - py.test tests --cov {{ .ARGS }}
+    vars:
+      ARGS: -x
+  test:
+    desc: Run unit tests
+    cmds:
+      - py.test tests {{ .ARGS }}
+    vars:
+      ARGS: -vx
+
+  version:
+    cmds:
+      - task: _fish
+        vars:
+          CMD: >
+            for f in (find . -maxdepth 2 -name "__init__.py");
+            sed -i -e "s|__version__ = .*|__version__ = \'{{ .V }}\'|" $f;
+            end
+    vars:
+      V:
+        sh: poetry version --short
+
+  update:
+    cmds:
+      - task: lint
+      - task: version
+      - task: build
+      - task: push
+      - task: clean
+  build:
+    cmds:
+      - poetry build
+  push:
+    cmds:
+      - poetry publish -r libs
+  clean:
+    cmds:
+      - rm -rf dist *.egg-info build
+
+  _fish: fish -c $'{{ .CMD }}'

@@ -1,0 +1,74 @@
+# -- Poetry --
+[tool.poetry]
+name = "AioActors"
+version = "2.0.0"
+description = "Simple abstractions for actor model based on asyncio"
+readme = "README.md"
+repository = "https://gitlab.itpc.ru/libs/python/aioactors"
+authors = ["Igor Voropaev <snake@itpc.ru>"]
+packages = [{ include = "aioactors" }]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+
+[[tool.poetry.source]]
+name = "wheels"
+url = "https://pypi.itpc.dev/mirror/wheels/+simple/"
+default = true
+
+[[tool.poetry.source]]
+name = "all"
+url = "https://pypi.itpc.dev/mirror/pypi.org/+simple/"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+# -- Flake8 --
+[tool.flake8]
+max-line-length = 135
+exclude = ["__submodules__", ".git"]
+max-returns-amount = 10
+max-parameters-amount = 15
+
+# -- MyPy --
+[tool.mypy]
+ignore_missing_imports = true
+cache_dir = "/dev/null"
+
+# -- PyLint --
+[tool.pylint.basic]
+good-names = ["i", "j", "k", "ex", "_", "pk", "T"]
+
+[tool.pylint.messages_control]
+disable = [
+    "missing-module-docstring",
+    "missing-class-docstring",
+    "missing-function-docstring",
+    "import-error",
+]
+
+[tool.pylint.design]
+max-args = 10
+max-returns = 10
+max-attributes = 30
+max-parameters = 15
+max-branches = 30
+min-public-methods = 0
+
+[tool.pylint.similarities]
+ignore-imports = true
+
+[tool.pylint.format]
+max-line-length = 135
+
+# -- Vulture --
+[tool.vulture]
+exclude = [".vscode/", "__samples__/"]
+
+# -- PyTest --
+[tool.coverage.run]
+omit = ["tests/*"]
+
+[tool.coverage.report]
+exclude_lines = ["pragma: no cover", "def __repr__", "def __str__"]
