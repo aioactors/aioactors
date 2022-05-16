@@ -4,11 +4,23 @@ version: "3"
 
 silent: true
 
-vars:
+vars: &vars
   FLAKE8_ENABLE: "{{ .FLAKE8_ENABLE | default true }}"
   MYPY_ENABLE: "{{ .MYPY_ENABLE | default true }}"
   PYLINT_ENABLE: "{{ .PYLINT_ENABLE | default true }}"
+  PYLINT_FORCE_RULES: '{{ .PYLINT_FORCE_RULES | default "" }}'
   VULTURE_ENABLE: "{{ .VULTURE_ENABLE | default true }}"
+
+  ENVIRONMENT: '{{ .ENVIRONMENT | default "production" }}'
+  POETRY_URL: '{{ .POETRY_REPOSITORIES_LIBS_URL | default "https://pypi.itpc.dev/itpc/libs" }}'
+  POETRY_USERNAME: "{{ .POETRY_HTTP_BASIC_LIBS_USERNAME }}"
+  POETRY_PASSWORD: "{{ .POETRY_HTTP_BASIC_LIBS_PASSWORD }}"
+
+  COMPILE_IMAGE: registry.itpc.ru/docker/compile/python:5
+  LINT_IMAGE: registry.itpc.ru/docker/tools/python/linter:6
+
+env:
+  POETRY_VIRTUALENVS_CREATE: "false"
 
 tasks:
   default:
@@ -26,87 +38,154 @@ tasks:
     desc: Linters for application cleanup
     cmds:
       - task: lint-flake8
-        vars:
-          ENABLE: "{{ .FLAKE8_ENABLE }}"
+        vars: *vars
       - task: lint-mypy
-        vars:
-          ENABLE: "{{ .MYPY_ENABLE }}"
+        vars: *vars
       - task: lint-pylint
-        vars:
-          ENABLE: "{{ .PYLINT_ENABLE }}"
+        vars: *vars
       - task: lint-vulture
-        vars:
-          ENABLE: "{{ .VULTURE_ENABLE }}"
+        vars: *vars
   lint-flake8:
     desc: Linters for application cleanup
     cmds:
-      - echo "-- lint-flake8 (enabled={{ .ENABLE }}) --"
-      - '{{ if eq .ENABLE "true" }} pflake8 {{ end }}'
-    vars:
-      ENABLE: "{{ .ENABLE | default true }}"
+      - echo "-- lint-flake8 (enabled={{ .FLAKE8_ENABLE }}) --"
+      - '{{ if eq .FLAKE8_ENABLE "true" }} pflake8 {{ end }}'
   lint-mypy:
     desc: Linters for application cleanup
     cmds:
-      - echo "-- lint-mypy (enabled={{ .ENABLE }}) --"
-      - '{{ if eq .ENABLE "true" }} mypy . {{ end }}'
-    vars:
-      ENABLE: "{{ .ENABLE | default true }}"
+      - echo "-- lint-mypy (enabled={{ .MYPY_ENABLE }}) --"
+      - '{{ if eq .MYPY_ENABLE "true" }} mypy . {{ end }}'
   lint-pylint:
     desc: Linters for application cleanup
     cmds:
-      - echo "-- lint-pylint (enabled={{ .ENABLE }}) --"
-      - '{{ if eq .ENABLE "true" }} pylint */ {{ end }}'
-    vars:
-      ENABLE: "{{ .ENABLE | default true }}"
+      - echo "-- lint-pylint (enabled={{ .PYLINT_ENABLE }}) --"
+      - '{{ if eq .PYLINT_ENABLE "true" }} pylint */ --enable="{{ .PYLINT_FORCE_RULES }}" {{ end }}'
   lint-vulture:
     desc: Linters for application cleanup
     cmds:
-      - echo "-- lint-vulture (enabled={{ .ENABLE }}) --"
-      - '{{ if eq .ENABLE "true" }} vulture . .vulture-whitelist.cfg {{ end }}'
-    vars:
-      ENABLE: "{{ .ENABLE | default true }}"
+      - echo "-- lint-vulture (enabled={{ .VULTURE_ENABLE }}) --"
+      - '{{ if eq .VULTURE_ENABLE "true" }} vulture . .vulture-whitelist.cfg {{ end }}'
 
+  # Test
   coverage:
     desc: Calculate code coverage
     cmds:
       - rm -rf htmlcov
-      - py.test tests --cov {{ .ARGS }}
-    vars:
-      ARGS: -x
+      - task: test
+        vars:
+          <<: *vars
+          ARGS: '--cov {{ .CLI_ARGS | default "-x" }}'
   test:
     desc: Run unit tests
     cmds:
       - py.test tests {{ .ARGS }}
     vars:
-      ARGS: -vx
+      ARGS: '{{ .CLI_ARGS | default "-vx" }}'
+
+  # Deps
+  deps:
+    desc: Обновление зависимостей
+    cmds:
+      - poetry lock
+  deps-install:
+    cmds:
+      - poetry install --no-root {{ if not (eq .DEV "true") }} --no-dev {{ end }}
+    vars:
+      DEV:
+        sh: if [ "{{ .ENVIRONMENT }}" != "production" ]; then echo "true"; else echo "false"; fi
 
   version:
     cmds:
       - task: _fish
         vars:
-          CMD: >
+          CLI_ARGS: >
             for f in (find . -maxdepth 2 -name "__init__.py");
             sed -i -e "s|__version__ = .*|__version__ = \'{{ .V }}\'|" $f;
             end
+      - task: _fish
+        vars:
+          CLI_ARGS: poetry version {{ .V }}
     vars:
       V:
-        sh: poetry version --short
+        sh: ./setup.py get-version
 
-  update:
+  # Build
+  publish:
+    desc: Publish library
     cmds:
       - task: lint
       - task: version
       - task: build
       - task: push
-      - task: clean
   build:
+    desc: Build wheel package
     cmds:
       - poetry build
   push:
+    desc: Push library to PyPi
     cmds:
       - poetry publish -r libs
-  clean:
-    cmds:
-      - rm -rf dist *.egg-info build
+      - rm -r dist
 
-  _fish: fish -c $'{{ .CMD }}'
+  # Docker
+  docker:
+    desc: Сборка и публикация образа
+    cmds:
+      - task: docker-lint
+        vars: *vars
+      - task: docker-build
+        vars: *vars
+      - task: docker-push
+        vars: *vars
+
+  docker-lint:
+    desc: Запуск обновления и сборки зависимостей проекта
+    cmds:
+      - task: _fish
+        vars:
+          CLI_ARGS: docker run -ti --rm
+            -v (pwd):/app/project
+            {{ .LINT_IMAGE }}
+            task lint
+  docker-build:
+    desc: Запуск сборки и публикации библиотеки
+    cmds:
+      - task: _fish
+        vars:
+          CLI_ARGS: docker run
+            -ti
+            --rm
+            -v (pwd):/app/project
+            {{ .CLI_ARGS }}
+            {{ .COMPILE_IMAGE }}
+            task version build ENVIRONMENT={{ .ENVIRONMENT }}
+  docker-push:
+    desc: Запуск сборки и публикации библиотеки
+    cmds:
+      - task: _fish
+        vars:
+          CLI_ARGS: docker run
+            -ti
+            --rm
+            -v (pwd):/app/project
+            -e POETRY_REPOSITORIES_LIBS_URL="{{ .POETRY_URL }}"
+            -e POETRY_HTTP_BASIC_LIBS_USERNAME="{{ .POETRY_USERNAME }}"
+            -e POETRY_HTTP_BASIC_LIBS_PASSWORD="{{ .POETRY_PASSWORD }}"
+            {{ .CLI_ARGS }}
+            {{ .COMPILE_IMAGE }}
+            task push ENVIRONMENT={{ .ENVIRONMENT }}
+  docker-scan:
+    desc: Запуск обновления и сборки зависимостей проекта
+    cmds:
+      - task: _fish
+        vars:
+          CLI_ARGS: docker run
+            -ti
+            --rm
+            -v (pwd):/app/project
+            {{ .CLI_ARGS }}
+            {{ .COMPILE_IMAGE }}
+            task -v deps ENVIRONMENT={{ .ENVIRONMENT }}
+
+  # Internal
+  _fish: fish -c $'{{ .CLI_ARGS }}'

@@ -26,3 +26,6 @@ class ActorApp:
     @property
     def name(self):
         return self._name
+
+    def serve(self, **_):
+        return self._map['server'](ActorSystem(loop=self._loop))

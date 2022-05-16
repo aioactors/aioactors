@@ -33,7 +33,7 @@ class Actor(ABC):
             await self()
             await asyncio.sleep(timeout)
 
-    async def wait(self, timeout: float = None) -> None:
+    async def wait(self, timeout: float = None) -> None:  # pylint: disable=no-self-use
         return await asyncio.sleep(timeout if isinstance(timeout, int) and timeout > 0 else 0)
 
 
