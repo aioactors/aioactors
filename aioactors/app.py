@@ -10,7 +10,7 @@ class ActorApp:
     _name: str
     _map: t.Dict[str, t.Callable] = {}
 
-    def __init__(self, name: str, *, loop: BaseEventLoop = None):
+    def __init__(self, name: str, *, loop: BaseEventLoop | None = None):
         self._name = name
         self._loop = loop if isinstance(loop, BaseEventLoop) else get_event_loop()
 

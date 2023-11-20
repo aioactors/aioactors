@@ -33,7 +33,7 @@ class Actor(ABC):
             await self()
             await asyncio.sleep(timeout)
 
-    async def wait(self, timeout: float = None) -> None:  # pylint: disable=no-self-use
+    async def wait(self, timeout: float | int | None = None) -> None:  # pylint: disable=no-self-use
         return await asyncio.sleep(timeout if isinstance(timeout, int) and timeout > 0 else 0)
 
 
@@ -57,7 +57,7 @@ class ActorWithStatistic(Actor, ABC):
     async def __call__(self) -> None:
         raise NotImplementedError()
 
-    async def wait(self, timeout: float = None) -> None:
+    async def wait(self, timeout: float | int | None = None) -> None:
         if (now := monotonic()) > self._results_at:
             self.logger.info("%s - [Running: %sms]", self._counter, round(now - self._start_at, 0))
             self._counter.flush()

@@ -1,20 +1,25 @@
 name: AioActors
-service: aioactors
-version: 2.1.0
+version: 2.2.0
 description: Simple abstractions for actor model based on asyncio
 link: https://gitlab.itpc.ru/libs/python/aioactors
 authors:
-  - Igor Voropaev <snake@itpc.ru>
-deps:
-  python: ^3.9
+  - Igor Voropaev <snakework10@gmail.com>
+
+service: aioactors
 files:
   - pyproject.toml
+
 images:
-  compile: python:6
+  compile: python:7
+
+deps:
+  python: ^3.10
+
 linters:
-  version: 8
+  version: 9
 tests:
   enabled: false
+
 publish:
   name: libs
   url: https://pypi.itpc.dev/itpc/libs

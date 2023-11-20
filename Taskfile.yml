@@ -1,5 +1,3 @@
-# Docks: https://taskfile.dev
-
 version: "3"
 
 silent: true
@@ -7,17 +5,18 @@ silent: true
 vars: &vars
   FLAKE8_ENABLE: "{{ .FLAKE8_ENABLE | default true }}"
   MYPY_ENABLE: "{{ .MYPY_ENABLE | default true }}"
-  PYLINT_ENABLE: "{{ .PYLINT_ENABLE | default true }}"
+  PYLINT_ENABLE: "{{ .PYLINT_ENABLE | default false }}"
   PYLINT_FORCE_RULES: '{{ .PYLINT_FORCE_RULES | default "" }}'
   VULTURE_ENABLE: "{{ .VULTURE_ENABLE | default true }}"
 
   ENVIRONMENT: '{{ .ENVIRONMENT | default "production" }}'
+
   POETRY_URL: '{{ .POETRY_REPOSITORIES_LIBS_URL | default "https://pypi.itpc.dev/itpc/libs" }}'
   POETRY_USERNAME: "{{ .POETRY_HTTP_BASIC_LIBS_USERNAME }}"
   POETRY_PASSWORD: "{{ .POETRY_HTTP_BASIC_LIBS_PASSWORD }}"
 
-  COMPILE_IMAGE: registry.itpc.ru/docker/compile/python:5
-  LINT_IMAGE: registry.itpc.ru/docker/tools/python/linter:6
+  COMPILE_IMAGE: registry.itpc.ru/docker/compile/python:7
+  LINT_IMAGE: registry.itpc.ru/docker/tools/python/linter:9
 
 env:
   POETRY_VIRTUALENVS_CREATE: "false"
@@ -34,6 +33,7 @@ tasks:
       - poetry version
       - echo "---"
 
+  # Lint
   lint:
     desc: Linters for application cleanup
     cmds:
@@ -54,6 +54,7 @@ tasks:
     desc: Linters for application cleanup
     cmds:
       - echo "-- lint-mypy (enabled={{ .MYPY_ENABLE }}) --"
+      - '{{ if eq .MYPY_ENABLE "true" }} poetry install --only linter --no-root {{ end }}'
       - '{{ if eq .MYPY_ENABLE "true" }} mypy . {{ end }}'
   lint-pylint:
     desc: Linters for application cleanup
@@ -100,11 +101,10 @@ tasks:
         vars:
           CLI_ARGS: >
             for f in (find . -maxdepth 2 -name "__init__.py");
-            sed -i -e "s|__version__ = .*|__version__ = \'{{ .V }}\'|" $f;
+            sed -e "s|__version__ = .*|__version__ = \'{{ .V }}\'|" $f > $f.bak;
+            mv $f.bak $f;
             end
-      - task: _fish
-        vars:
-          CLI_ARGS: poetry version {{ .V }}
+      - poetry version {{ .V }}
     vars:
       V:
         sh: ./setup.py get-version
@@ -113,8 +113,6 @@ tasks:
   publish:
     desc: Publish library
     cmds:
-      - task: lint
-      - task: version
       - task: build
       - task: push
   build:
@@ -124,7 +122,7 @@ tasks:
   push:
     desc: Push library to PyPi
     cmds:
-      - poetry publish -r libs
+      - poetry publish -n -r libs {{ if not (eq .PUSH "true") }} --dry-run {{ end }}
       - rm -r dist
 
   # Docker

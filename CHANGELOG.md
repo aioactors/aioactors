@@ -1,5 +1,9 @@
 # AioActors Changes
 
+## v2.2.0
+
+- Added `Jitter` structure for progressive timeout calculation
+
 ## v2.1.0
 
 - Added `ActorApp.serve` for run default `server` task as Dockerfile default command

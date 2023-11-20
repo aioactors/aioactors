@@ -2,11 +2,12 @@
 .pytest_cache/
 .mypy_cache/
 
-*.egg-info/
 dist/
+*.egg-info/
 
 .vscode/
 .idea/
+.venv/
 
 **/__samples__/
 **/__pycache__/

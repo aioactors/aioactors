@@ -1,25 +1,19 @@
 # -- Poetry --
 [tool.poetry]
 name = "AioActors"
-version = "2.1.0"
+version = "2.2.0"
 description = "Simple abstractions for actor model based on asyncio"
 readme = "README.md"
 repository = "https://gitlab.itpc.ru/libs/python/aioactors"
-authors = ["Igor Voropaev <snake@itpc.ru>"]
+authors = ["Igor Voropaev <snakework10@gmail.com>"]
 packages = [{ include = "aioactors" }]
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = "^3.10"
 
-[[tool.poetry.source]]
-name = "wheels"
-url = "https://pypi.itpc.dev/mirror/wheels/+simple/"
-default = true
+[tool.poetry.dev-dependencies]
 
-[[tool.poetry.source]]
-name = "all"
-url = "https://pypi.itpc.dev/mirror/pypi.org/+simple/"
-
+[tool.poetry.group.linter.dependencies]
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
@@ -27,10 +21,16 @@ build-backend = "poetry.core.masonry.api"
 # -- Flake8 --
 [tool.flake8]
 max-line-length = 135
-exclude = ["__submodules__", ".git"]
+exclude = [
+    "__submodules__", 
+    ".git",
+
+]
 max-returns-amount = 10
 max-parameters-amount = 15
-per-file-ignores = []
+per-file-ignores = [
+
+]
 
 # -- MyPy --
 [tool.mypy]
@@ -39,7 +39,7 @@ cache_dir = "/dev/null"
 
 # -- PyLint --
 [tool.pylint.basic]
-good-names = ["i", "j", "k", "ex", "_", "pk", "T", "ok"]
+good-names = ["i","j","k","ex","_","pk","T","ok"]
 
 [tool.pylint.messages_control]
 disable = [
@@ -47,13 +47,14 @@ disable = [
     "missing-class-docstring",
     "missing-function-docstring",
     "import-error",
+
 ]
+
 
 [tool.pylint.design]
 max-args = 10
 max-returns = 10
 max-attributes = 30
-max-parameters = 15
 max-branches = 30
 min-public-methods = 0
 max-public-methods = 40
@@ -66,8 +67,12 @@ max-line-length = 135
 
 # -- Vulture --
 [tool.vulture]
-exclude = [".vscode/", "__samples__/", "tests"]
-ignore_names = []
+exclude = [
+    ".vscode/", 
+    "__samples__/",
+    "tests",
+
+]
 
 # -- PyTest --
 [tool.pytest.ini_options]
@@ -83,3 +88,10 @@ exclude_lines = ["pragma: no cover", "def __repr__", "def __str__"]
 # -- AutoPEP8 --
 [tool.autopep8]
 max_line_length = 135
+
+# -- isort --
+[tool.isort]
+line_length = 135
+multi_line_output = 3
+sections = ['FUTURE', 'TYPINGS', 'STDLIB', 'THIRDPARTY', 'AIRFLOW', 'FIRSTPARTY', 'LOCALFOLDER']
+known_typings = ['typing']
