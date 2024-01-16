@@ -1,5 +1,9 @@
 # AioActors Changes
 
+## v2.2.1
+
+- Fixed expired timeout for log report in `ActorWithStatistic.wait`
+
 ## v2.2.0
 
 - Added `Jitter` structure for progressive timeout calculation

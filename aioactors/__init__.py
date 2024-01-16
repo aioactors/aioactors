@@ -4,7 +4,7 @@ from .app import ActorApp
 from .structures import MessageCounter
 from .utils import base_logger
 
-__version__ = '2.2.0'
+__version__ = '2.2.1'
 
 __all__ = [
     'Actor',

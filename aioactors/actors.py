@@ -1,13 +1,10 @@
 import asyncio
-from logging import getLogger, Logger
-from abc import abstractmethod, ABC
+from abc import ABC, abstractmethod
+from logging import Logger, getLogger
 from time import monotonic
 
+from .constants import DEFAULT_STATISTIC_INTERVAL, DEFAULT_TASK_TIMEOUT
 from .structures import MessageCounter
-from .constants import (
-    DEFAULT_TASK_TIMEOUT,
-    DEFAULT_STATISTIC_INTERVAL
-)
 
 
 class Actor(ABC):
@@ -61,6 +58,6 @@ class ActorWithStatistic(Actor, ABC):
         if (now := monotonic()) > self._results_at:
             self.logger.info("%s - [Running: %sms]", self._counter, round(now - self._start_at, 0))
             self._counter.flush()
-            self._results_at = self._results_at + self.statistic_at
+            self._results_at = now + self.statistic_at
 
         return await super().wait(timeout)

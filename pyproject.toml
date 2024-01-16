@@ -1,7 +1,7 @@
 # -- Poetry --
 [tool.poetry]
 name = "AioActors"
-version = "2.2.0"
+version = "2.2.1"
 description = "Simple abstractions for actor model based on asyncio"
 readme = "README.md"
 repository = "https://gitlab.itpc.ru/libs/python/aioactors"
