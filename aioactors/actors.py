@@ -1,3 +1,5 @@
+import typing as t
+
 import asyncio
 from abc import ABC, abstractmethod
 from logging import Logger, getLogger
@@ -25,10 +27,22 @@ class Actor(ABC):
     async def __call__(self) -> None:
         raise NotImplementedError
 
-    async def start(self, timeout: int = DEFAULT_TASK_TIMEOUT) -> None:
-        while True:
-            await self()
-            await asyncio.sleep(timeout)
+    async def start(self, timeout: float | None = DEFAULT_TASK_TIMEOUT) -> None:
+        timeout = timeout if isinstance(timeout, int) and timeout > 0 else DEFAULT_TASK_TIMEOUT
+
+        await self.before_start()
+        try:
+            while True:
+                await self()
+                await asyncio.sleep(timeout)
+        finally:
+            await self.before_stop()
+
+    async def before_start(self) -> t.Self:
+        return self
+
+    async def before_stop(self) -> t.Self:
+        return self
 
     async def wait(self, timeout: float | None = None) -> None:  # noqa: PLR6301
         return await asyncio.sleep(timeout if isinstance(timeout, int) and timeout > 0 else 0)
