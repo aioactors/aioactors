@@ -1,6 +1,7 @@
 .cache/
 .pytest_cache/
 .mypy_cache/
+.ruff_cache/
 
 dist/
 *.egg-info/
@@ -8,15 +9,17 @@ dist/
 .vscode/
 .idea/
 .venv/
+.devcontainer/
 
 **/__samples__/
 **/__pycache__/
 
 htmlcov/
 
-.notifier
 .coverage
+.notifier
 .DS_Store
+.env
 *.pyc
 *~
 *.conf

@@ -1,5 +1,5 @@
 name: AioActors
-version: 2.2.1
+version: 2.3.0
 description: Simple abstractions for actor model based on asyncio
 link: https://gitlab.itpc.ru/libs/python/aioactors
 authors:
@@ -13,12 +13,13 @@ images:
   compile: python:7
 
 deps:
-  python: ^3.10
+  python: ^3.11
 
 linters:
-  version: 9
+  version: 12
 tests:
   enabled: false
+  version: 3
 
 publish:
   name: libs

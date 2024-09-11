@@ -1,6 +1,6 @@
 # aioactors
 
-Simple implementation actors on Python 3.8+. Uses asyncio as backend for running actors
+Simple implementation actors on Python 3.11+. Uses asyncio as backend for running actors
 
 ## Changelog
 

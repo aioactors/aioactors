@@ -13,24 +13,24 @@ class Actor(ABC):
     def __new__(cls, *_, **kwargs):
         obj = super().__new__(cls)
 
-        obj.logger = cls.logger.getChild(f'{cls.__name__}')
+        obj.logger = cls.logger.getChild(f"{cls.__name__}")
 
-        if '_id' in kwargs:
-            obj.id = kwargs['_id']
-            obj.logger = obj.logger.getChild(str(kwargs['_id']))
+        if "_id" in kwargs:
+            obj.id = kwargs["_id"]
+            obj.logger = obj.logger.getChild(str(kwargs["_id"]))
 
         return obj
 
     @abstractmethod
     async def __call__(self) -> None:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     async def start(self, timeout: int = DEFAULT_TASK_TIMEOUT) -> None:
         while True:
             await self()
             await asyncio.sleep(timeout)
 
-    async def wait(self, timeout: float | int | None = None) -> None:  # pylint: disable=no-self-use
+    async def wait(self, timeout: float | None = None) -> None:  # noqa: PLR6301
         return await asyncio.sleep(timeout if isinstance(timeout, int) and timeout > 0 else 0)
 
 
@@ -44,17 +44,17 @@ class ActorWithStatistic(Actor, ABC):
     def __new__(cls, *_, **__):
         obj = super().__new__(cls)
 
-        obj._counter = MessageCounter()
-        obj._start_at = monotonic()
-        obj._results_at = obj._start_at + obj.statistic_at  # pylint: disable=no-member
+        obj._counter = MessageCounter()  # noqa: SLF001
+        obj._start_at = monotonic()  # noqa: SLF001
+        obj._results_at = obj._start_at + obj.statistic_at  # noqa: SLF001
 
         return obj
 
     @abstractmethod
     async def __call__(self) -> None:
-        raise NotImplementedError()
+        raise NotImplementedError
 
-    async def wait(self, timeout: float | int | None = None) -> None:
+    async def wait(self, timeout: float | None = None) -> None:
         if (now := monotonic()) > self._results_at:
             self.logger.info("%s - [Running: %sms]", self._counter, round(now - self._start_at, 0))
             self._counter.flush()

@@ -1,16 +1,16 @@
 from .actors import Actor, ActorWithStatistic
-from .runners import ActorSystem
 from .app import ActorApp
+from .runners import ActorSystem
 from .structures import MessageCounter
 from .utils import base_logger
 
-__version__ = '2.2.1'
+__version__ = "2.3.0"
 
 __all__ = [
-    'Actor',
-    'ActorWithStatistic',
-    'ActorSystem',
-    'ActorApp',
-    'MessageCounter',
-    'base_logger'
+    "Actor",
+    "ActorApp",
+    "ActorSystem",
+    "ActorWithStatistic",
+    "MessageCounter",
+    "base_logger",
 ]

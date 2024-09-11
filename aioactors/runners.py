@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 import typing as t
 
 import asyncio
@@ -13,7 +14,7 @@ class ActorSystem:
         self.logger = getLogger(type(self).__name__)
         self.loop = loop
 
-        self.tasks: t.List[t.Coroutine] = []
+        self.tasks: list[t.Coroutine] = []
 
     def __call__(self):
         try:
