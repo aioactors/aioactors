@@ -14,14 +14,14 @@ class MessageCounter:
     _ok: int = f(default=0)
     _skip: int = f(default=0)
 
-    def success(self) -> None:
-        self._ok += 1
+    def success(self, recs: int = 1) -> None:
+        self._ok += recs
 
-    def error(self) -> None:
-        self._error += 1
+    def error(self, recs: int = 1) -> None:
+        self._error += recs
 
-    def skip(self) -> None:
-        self._skip += 1
+    def skip(self, recs: int = 1) -> None:
+        self._skip += recs
 
     def flush(self) -> MessageCounter:
         self._ok = 0
