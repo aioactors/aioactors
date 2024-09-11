@@ -1,5 +1,12 @@
 # AioActors Changes
 
+## v2.3.0
+
+- Breaking support Python less than 3.11
+- Added `Actor.before_start` and `Actor.before_stop` for prepare and cleanup actions in actor
+- Added `recs` argument in `MessageCounter` change functions for append more than one record
+- Migrate to `ruff` linter
+
 ## v2.2.1
 
 - Fixed expired timeout for log report in `ActorWithStatistic.wait`
